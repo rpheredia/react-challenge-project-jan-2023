@@ -5,21 +5,30 @@ import { SERVER_IP } from '../../private';
 import './orderForm.css';
 
 const ADD_ORDER_URL = `${SERVER_IP}/api/add-order`;
+const EDIT_ORDER_URL = `${SERVER_IP}/api/edit-order`;
 
 export default function OrderForm(props) {
-    const [orderItem, setOrderItem] = useState("");
-    const [quantity, setQuantity] = useState("1");
+    const params = props.history.location.state;
+    const orderItemParam = params ? (params.order_item ? params.order_item : "") : "";
+    const quantityParam = params ? (params.quantity ? params.quantity : "") : "";
+    const id = params ? (params._id ? params._id : "") : "";
+    const isEdit = id ? true : false;
 
-    const menuItemChosen = (event) => setOrderItem(event.value);
-    const menuQuantityChosen = (event) => setQuantity(event.value);
+    const [orderItem, setOrderItem] = useState(orderItemParam);
+    const [quantity, setQuantity] = useState(quantityParam);
+
+    console.log(JSON.stringify(props));
+    const menuItemChosen = (event) => setOrderItem(event.target.value);
+    const menuQuantityChosen = (event) => setQuantity(event.target.value);
 
     const auth = useSelector((state) => state.auth);
 
     const submitOrder = () => {
         if (orderItem === "") return;
-        fetch(ADD_ORDER_URL, {
+        fetch(isEdit ? EDIT_ORDER_URL : ADD_ORDER_URL, {
             method: 'POST',
             body: JSON.stringify({
+                id: id,
                 order_item: orderItem,
                 quantity,
                 ordered_by: auth.email || 'Unknown!',
@@ -28,18 +37,18 @@ export default function OrderForm(props) {
                 'Content-Type': 'application/json'
             }
         })
-        .then(res => res.json())
-        .then(response => console.log("Success", JSON.stringify(response)))
-        .catch(error => console.error(error));
+            .then(res => res.json())
+            .then(response => console.log("Success", JSON.stringify(response)))
+            .catch(error => console.error(error));
     }
 
     return (
         <Template>
             <div className="form-wrapper">
                 <form>
-                    <label className="form-label">I'd like to order...</label><br />
-                    <select 
-                        value={orderItem} 
+                    <label className="form-label">{isEdit ? 'Edit Order' : `I'd like to order...`}</label><br />
+                    <select
+                        value={orderItem}
                         onChange={(event) => menuItemChosen(event)}
                         className="menu-select"
                     >
@@ -58,7 +67,7 @@ export default function OrderForm(props) {
                         <option value="5">5</option>
                         <option value="6">6</option>
                     </select>
-                    <button type="button" className="order-btn" onClick={() => submitOrder()}>Order It!</button>
+                    <button type="button" className="order-btn" onClick={() => submitOrder()}>{isEdit ? 'Update' : 'Order It!'}</button>
                 </form>
             </div>
         </Template>
