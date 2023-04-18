@@ -1,11 +1,18 @@
 import React from 'react';
 import { Link } from "react-router-dom";
-import { SERVER_IP } from '../../private';
+import { connect, useSelector } from 'react-redux';
+import { deleteOrder } from '../../redux/actions/orderActions'
 
-const DELETE_ORDER_URL = `${SERVER_IP}/api/delete-order`;
+const mapActionsToProps = dispatch => ({
+    deleteOrder(id, orders) {
+        dispatch(deleteOrder(id, orders))
+    }
+})
+
 const OrdersList = (props) => {
-    let { orders } = props;
-    if (!props || !props.orders || !props.orders.length) return (
+    const orders = useSelector(state => state.order.orders);
+    
+    if (!orders || !orders.length) return (
         <div className="empty-orders">
             <h2>There are no orders to display</h2>
         </div>
@@ -13,21 +20,7 @@ const OrdersList = (props) => {
 
     const deleteOrder = (id) => {
         if (id === "") return;
-        fetch(DELETE_ORDER_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                id: id
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(res => res.json())
-            .then(response => {
-                orders = orders.filter((order) => order._id !== id);
-                console.log("Success", JSON.stringify(response))
-            })
-            .catch(error => console.error(error));
+        props.deleteOrder(id, orders);
     }
 
     return orders.map(order => {
@@ -54,4 +47,4 @@ const OrdersList = (props) => {
     });
 }
 
-export default OrdersList;
+export default connect(null, mapActionsToProps)(OrdersList);

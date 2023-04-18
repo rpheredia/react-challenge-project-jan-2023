@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Template } from '../../components';
-import { SERVER_IP } from '../../private';
+import { connect } from 'react-redux';
 import './orderForm.css';
+import { addOrder, editOrder } from '../../redux/actions/orderActions'
 
-const ADD_ORDER_URL = `${SERVER_IP}/api/add-order`;
-const EDIT_ORDER_URL = `${SERVER_IP}/api/edit-order`;
+const mapActionsToProps = dispatch => ({
+    addOrder(order_item, quantity, ordered_by) {
+      dispatch(addOrder(order_item, quantity, ordered_by))
+    },
+    editOrder(id, order_item, quantity, ordered_by) {
+        dispatch(editOrder(id, order_item, quantity, ordered_by))
+    }
+  })
 
-export default function OrderForm(props) {
+const OrderForm = (props) => {
     const params = props.history.location.state;
     const orderItemParam = params ? (params.order_item ? params.order_item : "") : "";
     const quantityParam = params ? (params.quantity ? params.quantity : "") : "";
@@ -17,7 +24,6 @@ export default function OrderForm(props) {
     const [orderItem, setOrderItem] = useState(orderItemParam);
     const [quantity, setQuantity] = useState(quantityParam);
 
-    console.log(JSON.stringify(props));
     const menuItemChosen = (event) => setOrderItem(event.target.value);
     const menuQuantityChosen = (event) => setQuantity(event.target.value);
 
@@ -25,21 +31,8 @@ export default function OrderForm(props) {
 
     const submitOrder = () => {
         if (orderItem === "") return;
-        fetch(isEdit ? EDIT_ORDER_URL : ADD_ORDER_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                id: id,
-                order_item: orderItem,
-                quantity,
-                ordered_by: auth.email || 'Unknown!',
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-            .then(res => res.json())
-            .then(response => console.log("Success", JSON.stringify(response)))
-            .catch(error => console.error(error));
+        isEdit ? props.editOrder(id, orderItem, quantity, auth.email || 'Unknown!') : 
+        props.addOrder(orderItem, quantity, auth.email || 'Unknown!');
     }
 
     return (
@@ -73,3 +66,5 @@ export default function OrderForm(props) {
         </Template>
     )
 }
+
+export default connect(null, mapActionsToProps)(OrderForm);
