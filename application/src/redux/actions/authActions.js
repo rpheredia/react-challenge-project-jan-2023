@@ -11,9 +11,9 @@ const finishLogin = (email, token) => {
     }
 }
 
-export const loginUser = (email, password) => {
-    return (dispatch) => {
-        fetch(`${SERVER_IP}/api/login`, {
+export const loginUser =  (email, password) => {
+    return async (dispatch) => {
+        await fetch(`${SERVER_IP}/api/login`, {
             method: 'POST',
             body: JSON.stringify({
                 email,
