@@ -55,4 +55,21 @@ describe('Orders List', () => {
         expect(screen.getByText(/^.*888.*$/gm)).toBeInTheDocument();
 
     });
+    
+    test('time format display', () => {
+        const orders = [
+            {
+                order_item: "Food",
+                quantity: "777",
+                _id: 1,
+                createdAt:"2023-04-22T22:53:06.429Z"
+            }
+        ];
+        render(
+            <OrdersList
+                orders={orders}
+            />
+        )
+        expect(screen.getByText(/^.*15:53:06.*$/gm)).toBeInTheDocument();
+    });
 })
