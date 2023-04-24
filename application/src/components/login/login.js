@@ -9,7 +9,10 @@ class Login extends Component {
       <div className="main-body">
         <h1 className="text-center">Login Screen</h1>
         <div className="d-flex justify-content-center mt-5">
-          <LoginForm onLogin={() => {this.props.history.push('/view-orders')}}/>
+          <LoginForm onLogin={() => { this.props.history.push('/view-orders') }} />
+        </div>
+        <div>
+          <a href="/signup">Create new account</a>
         </div>
       </div>
     )

@@ -1,12 +1,22 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'; 
-import { loginUser } from '../../../redux/actions/authActions'
+import { loginUser, resetLogin } from '../../../redux/actions/authActions'
 
 const mapActionsToProps = dispatch => ({
-  commenceLogin(email, password) {
-    dispatch(loginUser(email, password))
+  async commenceLogin(email, password) {
+    await dispatch(loginUser(email, password))
+  },
+  resetLogin() {
+    dispatch(resetLogin())
   }
 })
+
+const mapStateToProps = (state) => {
+  const auth = state.auth;
+  return {
+    auth
+  };
+};
 
 class LoginForm extends Component {
   state = {
@@ -14,10 +24,21 @@ class LoginForm extends Component {
     password: "",
   }
 
-  login(e) {
+  async login(e) {
     e.preventDefault();
-    this.props.commenceLogin(this.state.email, this.state.password);
-    this.props.onLogin();
+    await this.props.commenceLogin(this.state.email, this.state.password)
+        .then((resp) => {
+          if (this.props.auth.error) {
+            alert((this.props.auth.error ) || 'Something went wrong. Please try again!');
+            this.props.resetLogin();
+          } else {
+            this.props.onLogin(); 
+          }
+        })
+        .catch((err) => {
+          this.props.resetLogin();
+          alert('Something went wrong. Please try again!');
+        });
   }
 
   onChange(key, val) {
@@ -43,4 +64,4 @@ class LoginForm extends Component {
   }
 }
 
-export default connect(null, mapActionsToProps)(LoginForm);
+export default connect(mapStateToProps, mapActionsToProps)(LoginForm);
