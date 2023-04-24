@@ -1,45 +1,47 @@
 import React, { useState } from 'react';
 import { useSelector } from 'react-redux';
 import { Template } from '../../components';
-import { SERVER_IP } from '../../private';
+import { connect } from 'react-redux';
 import './orderForm.css';
+import { addOrder, editOrder } from '../../redux/actions/orderActions'
 
-const ADD_ORDER_URL = `${SERVER_IP}/api/add-order`;
+const mapActionsToProps = dispatch => ({
+    addOrder(order_item, quantity, ordered_by) {
+      dispatch(addOrder(order_item, quantity, ordered_by))
+    },
+    editOrder(id, order_item, quantity, ordered_by) {
+        dispatch(editOrder(id, order_item, quantity, ordered_by))
+    }
+  })
 
-export default function OrderForm(props) {
-    const [orderItem, setOrderItem] = useState("");
-    const [quantity, setQuantity] = useState("1");
+const OrderForm = (props) => {
+    const params = props.history.location.state;
+    const orderItemParam = params ? (params.order_item ? params.order_item : "") : "";
+    const quantityParam = params ? (params.quantity ? params.quantity : "") : "";
+    const id = params ? (params._id ? params._id : "") : "";
+    const isEdit = id ? true : false;
 
-    const menuItemChosen = (event) => setOrderItem(event.value);
-    const menuQuantityChosen = (event) => setQuantity(event.value);
+    const [orderItem, setOrderItem] = useState(orderItemParam);
+    const [quantity, setQuantity] = useState(quantityParam);
+
+    const menuItemChosen = (event) => setOrderItem(event.target.value);
+    const menuQuantityChosen = (event) => setQuantity(event.target.value);
 
     const auth = useSelector((state) => state.auth);
 
     const submitOrder = () => {
         if (orderItem === "") return;
-        fetch(ADD_ORDER_URL, {
-            method: 'POST',
-            body: JSON.stringify({
-                order_item: orderItem,
-                quantity,
-                ordered_by: auth.email || 'Unknown!',
-            }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        })
-        .then(res => res.json())
-        .then(response => console.log("Success", JSON.stringify(response)))
-        .catch(error => console.error(error));
+        isEdit ? props.editOrder(id, orderItem, quantity, auth.email || 'Unknown!') : 
+        props.addOrder(orderItem, quantity, auth.email || 'Unknown!');
     }
 
     return (
         <Template>
             <div className="form-wrapper">
                 <form>
-                    <label className="form-label">I'd like to order...</label><br />
-                    <select 
-                        value={orderItem} 
+                    <label className="form-label">{isEdit ? 'Edit Order' : `I'd like to order...`}</label><br />
+                    <select
+                        value={orderItem}
                         onChange={(event) => menuItemChosen(event)}
                         className="menu-select"
                     >
@@ -58,9 +60,11 @@ export default function OrderForm(props) {
                         <option value="5">5</option>
                         <option value="6">6</option>
                     </select>
-                    <button type="button" className="order-btn" onClick={() => submitOrder()}>Order It!</button>
+                    <button type="button" className="order-btn" onClick={() => submitOrder()}>{isEdit ? 'Update' : 'Order It!'}</button>
                 </form>
             </div>
         </Template>
     )
 }
+
+export default connect(null, mapActionsToProps)(OrderForm);

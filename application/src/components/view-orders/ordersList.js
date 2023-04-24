@@ -1,12 +1,27 @@
 import React from 'react';
+import { Link } from "react-router-dom";
+import { connect, useSelector } from 'react-redux';
+import { deleteOrder } from '../../redux/actions/orderActions'
+
+const mapActionsToProps = dispatch => ({
+    deleteOrder(id, orders) {
+        dispatch(deleteOrder(id, orders))
+    }
+})
 
 const OrdersList = (props) => {
-    const { orders } = props;
-    if (!props || !props.orders || !props.orders.length) return (
+    const orders = useSelector(state => state.order.orders);
+    
+    if (!orders || !orders.length) return (
         <div className="empty-orders">
             <h2>There are no orders to display</h2>
         </div>
     );
+
+    const deleteOrder = (id) => {
+        if (id === "") return;
+        props.deleteOrder(id, orders);
+    }
 
     return orders.map(order => {
         const createdDate = new Date(order.createdAt);
@@ -20,13 +35,16 @@ const OrdersList = (props) => {
                     <p>Order placed at {`${createdDate.getHours()}:${createdDate.getMinutes()}:${createdDate.getSeconds()}`}</p>
                     <p>Quantity: {order.quantity}</p>
                 </div>
+
                 <div className="col-md-4 view-order-right-col">
-                    <button className="btn btn-success">Edit</button>
-                    <button className="btn btn-danger">Delete</button>
+                    <Link to={{ pathname: "/order", state: order }} >
+                        <button className="btn btn-success">Edit</button>
+                    </Link>
+                    <button onClick={() => deleteOrder(order._id)} className="btn btn-danger">Delete</button>
                 </div>
             </div>
         );
     });
 }
 
-export default OrdersList;
+export default connect(null, mapActionsToProps)(OrdersList);
